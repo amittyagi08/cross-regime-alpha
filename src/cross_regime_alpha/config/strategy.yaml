@@ -1,0 +1,47 @@
+strategy:
+  name: deep_pullback_momentum_reclaim_v1
+  execution: next_open
+
+universe:
+  source: csv
+  tickers_file: data/universe/sp500_tickers.csv
+  include_file:
+  exclude_file:
+  resolved_output_file: outputs/universe/resolved_tickers.csv
+  benchmark: SPY
+
+regime:
+  benchmark_symbol: SPY
+  sma_period: 200
+  enabled_when_close_above_sma: true
+
+trend_filter:
+  close_above_sma200: true
+  sma50_above_sma200: true
+
+pullback:
+  rsi_period: 14
+  rsi_threshold: 35
+  lookback_days: 5
+  close_below_ema_period: 20
+
+entry:
+  rsi_reclaim_threshold: 45
+  close_above_ema_period: 20
+
+exit:
+  ema_break_period: 20
+  hard_stop_pct: 0.07
+  time_stop_days: 20
+  profit_target_enabled: false
+  profit_target_pct: 0.10
+
+portfolio:
+  max_positions: 10
+  position_sizing: equal_weight
+  ranking_metric: roc_63
+  leverage: 1.0
+
+costs:
+  slippage_bps: 2
+  commission_per_trade: 0.0
