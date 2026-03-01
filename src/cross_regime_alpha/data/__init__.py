@@ -12,6 +12,12 @@ from .ibkr_ingestion import (
     SymbolIngestionResult,
     ingest_daily_bars,
 )
+from .normalization import (
+    NormalizationConfig,
+    NormalizationResult,
+    QualitySummary,
+    normalize_daily_data_cache,
+)
 
 __all__ = [
     "UniverseLoadResult",
@@ -22,4 +28,8 @@ __all__ = [
     "SymbolIngestionResult",
     "IngestionRunResult",
     "ingest_daily_bars",
+    "NormalizationConfig",
+    "QualitySummary",
+    "NormalizationResult",
+    "normalize_daily_data_cache",
 ]

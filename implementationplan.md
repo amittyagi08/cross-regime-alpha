@@ -220,6 +220,156 @@ Based on: `deep-pullback-system-spec.md`
 - Avoid web-only assumptions in response payloads (no HTML-formatted fields).
 - Plan mobile app as a thin client consuming existing APIs with shared design tokens and DTOs.
 
+## Step Input/Output Contract (Cross-Step Handoffs)
+
+### Step 1
+- Inputs:
+  - `deep-pullback-system-spec.md`
+- Outputs:
+  - package/module structure under `src/cross_regime_alpha/*`
+  - base config scaffold in `src/cross_regime_alpha/config/strategy.yaml`
+
+### Step 2
+- Inputs:
+  - universe source file (`CSV/TXT/JSON`)
+- Outputs:
+  - resolved ticker list object in memory
+  - universe snapshot file: `outputs/universe/resolved_tickers.csv`
+
+### Step 2.5
+- Inputs:
+  - `.env` / app environment variables
+  - optional local env file
+- Outputs:
+  - resolved `IBKRSettings` object consumed by broker client
+
+### Step 3
+- Inputs:
+  - resolved `IBKRSettings`
+- Outputs:
+  - live IBKR connection/session state
+  - health status (`connected`, server time, error context)
+
+### Step 4
+- Inputs:
+  - resolved universe from Step 2
+  - IBKR connection from Step 3
+- Outputs:
+  - raw daily bars parquet: `data/cache/ibkr/raw/daily/...`
+  - normalized daily bars parquet: `data/cache/ibkr/normalized/daily/...`
+  - ingestion metadata JSON: `outputs/runs/<run_id>/metadata.json`
+
+### Step 5
+- Inputs:
+  - normalized daily bars from Step 4
+- Outputs:
+  - cleaned/aligned parquet cache: `data/cache/ibkr/cleaned/daily/...`
+  - normalization quality report: `outputs/runs/<run_id>/normalization_report.json`
+
+### Step 6
+- Inputs:
+  - cleaned cache from Step 5
+- Outputs:
+  - feature parquet cache with indicators: `data/cache/features/daily/...`
+  - indicator report: `outputs/runs/<run_id>/indicators_report.json`
+
+### Step 7
+- Inputs:
+  - feature cache from Step 6 (benchmark `SPY` + target symbols)
+- Outputs:
+  - regime-annotated signal cache: `data/cache/signals/daily/...`
+  - regime report: `outputs/runs/<run_id>/regime_report.json`
+
+### Step 8
+- Inputs:
+  - indicator features from Step 6
+  - regime-aware signal layer from Step 7 (when present)
+- Outputs:
+  - trend eligibility flags per symbol/date (cached in signal layer)
+  - trend report: `outputs/runs/<run_id>/trend_report.json`
+
+### Step 9
+- Inputs:
+  - indicator features and trend context (Steps 6, 8)
+- Outputs:
+  - pullback setup state per symbol/date (cached in signal layer)
+
+### Step 10
+- Inputs:
+  - pullback setup (Step 9)
+  - trend eligibility (Step 8)
+  - regime state (Step 7)
+  - indicator fields (Step 6)
+- Outputs:
+  - entry trigger signal per symbol/date (next-open execution intent)
+
+### Step 11
+- Inputs:
+  - entry candidates from Step 10
+  - ranking feature (`ROC_63`) from feature/signal layer
+- Outputs:
+  - selected entries with position sizing and deterministic ordering
+
+### Step 12
+- Inputs:
+  - open positions + market/indicator state
+- Outputs:
+  - exit decisions with trigger reason and precedence resolution
+
+### Step 13
+- Inputs:
+  - entry/exit decisions
+  - slippage and commission config
+- Outputs:
+  - cost-adjusted execution prices and PnL adjustments
+
+### Step 14
+- Inputs:
+  - sized entries (Step 11)
+  - exits (Step 12)
+  - trading frictions (Step 13)
+- Outputs:
+  - daily portfolio state: positions, cash, equity/NAV
+  - trade ledger records
+
+### Step 15
+- Inputs:
+  - backtest state and trade ledger from Step 14
+- Outputs:
+  - metrics summary
+  - trade log / equity curve / run metadata artifacts
+  - CSV/JSON/Markdown output bundle in `outputs/`
+
+### Step 16
+- Inputs:
+  - all modules/artifacts from Steps 3–15
+- Outputs:
+  - test reports (unit/integration/integrity)
+
+### Step 17
+- Inputs:
+  - implemented CLI/scripts and environment setup
+- Outputs:
+  - runbook and operational documentation
+
+### Step 18
+- Inputs:
+  - domain modules from Steps 2–17
+- Outputs:
+  - service/API layer contracts and deployable runtime profile
+
+### Step 19
+- Inputs:
+  - signal + backtest outputs + ranking/sizing outputs
+- Outputs:
+  - model portfolio snapshots and UI-facing portfolio DTO contracts
+
+### Step 20
+- Inputs:
+  - API contracts and portfolio/reporting outputs
+- Outputs:
+  - web client integration path and mobile-ready API consumption model
+
 ## Review Checklist (Before Coding)
 - Confirm ticker list input format you will provide.
 - Confirm IBKR connection mode (Gateway or TWS), host, port, and client ID approach.
