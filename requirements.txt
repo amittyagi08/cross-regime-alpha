@@ -3,3 +3,4 @@ numpy>=2.1.0
 PyYAML>=6.0.2
 python-dotenv>=1.0.1
 ib-insync>=0.9.86
+pyarrow>=17.0.0

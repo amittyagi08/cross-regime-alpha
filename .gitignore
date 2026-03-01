@@ -16,3 +16,7 @@ venv/
 # Outputs/data caches
 outputs/
 *.log
+
+cache/
+
+
